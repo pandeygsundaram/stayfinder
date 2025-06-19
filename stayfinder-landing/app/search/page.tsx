@@ -89,12 +89,12 @@ type Property = {
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [priceRange, setPriceRange] = useState([0, 500])
+  const [priceRange, setPriceRange] = useState([0, 2000])
   const [selectedType, setSelectedType] = useState("Any type")
   const [guests, setGuests] = useState("Any number")
   const [showFilters, setShowFilters] = useState(false)
 
-  const [Loading, setLoading] = useState(false)
+  const [loading, setloading] = useState(true)
 
   const [properties, setProperties] = useState<Property[]>([])
 
@@ -110,16 +110,31 @@ export default function SearchPage() {
   })
 
   useEffect(() => {
+    setloading(true)
     const fetchProperties = async () => {
-      setLoading(true)
       const props = await fetchAndEnrichListings()
+      console.log(props)
       setProperties(props)
-      setLoading(false)
+      setloading(false)
     }
 
     fetchProperties()
   }, [])
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
+        <main className="container px-4 md:px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stayfinder-forest mx-auto mb-4"></div>
+              <p className="text-stayfinder-forest/80 dark:text-slate-300">Loading magical stays...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
 
   return (

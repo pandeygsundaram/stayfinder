@@ -208,7 +208,7 @@ export default function AddPropertyPage() {
       console.log("Listing created successfully:", data);
 
       // Redirect to host dashboard or property details page
-      // window.location.href = "/host";
+      window.location.href = "/host";
 
     } catch (error: any) {
       console.error("Error creating property:", error.message || error);
