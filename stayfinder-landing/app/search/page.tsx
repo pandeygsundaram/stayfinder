@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,95 +11,81 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Star, MapPin, Filter, Search, Heart } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 
-const properties = [
-  {
-    id: 1,
-    title: "Enchanted Forest Cottage",
-    location: "Miyazaki Woods, Japan",
-    price: 120,
-    rating: 4.9,
-    reviews: 124,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Forest View", "Hot Spring"],
-    guests: 4,
-    bedrooms: 2,
-    bathrooms: 1,
-    type: "Cottage",
-  },
-  {
-    id: 2,
-    title: "Seaside Spirited Villa",
-    location: "Coastal Village, Italy",
-    price: 195,
-    rating: 4.8,
-    reviews: 86,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Ocean View", "Private Beach"],
-    guests: 6,
-    bedrooms: 3,
-    bathrooms: 2,
-    type: "Villa",
-  },
-  {
-    id: 3,
-    title: "Floating Sky Castle",
-    location: "Mountain Heights, New Zealand",
-    price: 250,
-    rating: 5.0,
-    reviews: 42,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Mountain View", "Unique Stay"],
-    guests: 2,
-    bedrooms: 1,
-    bathrooms: 1,
-    type: "Castle",
-  },
-  {
-    id: 4,
-    title: "Totoro's Tree House",
-    location: "Saitama Forest, Japan",
-    price: 85,
-    rating: 4.7,
-    reviews: 203,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Tree House", "Nature"],
-    guests: 3,
-    bedrooms: 1,
-    bathrooms: 1,
-    type: "Tree House",
-  },
-  {
-    id: 5,
-    title: "Howl's Moving Castle",
-    location: "Welsh Countryside, UK",
-    price: 300,
-    rating: 4.9,
-    reviews: 67,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Magical", "Unique"],
-    guests: 8,
-    bedrooms: 4,
-    bathrooms: 3,
-    type: "Castle",
-  },
-  {
-    id: 6,
-    title: "Spirited Away Bathhouse",
-    location: "Gunma Prefecture, Japan",
-    price: 180,
-    rating: 4.8,
-    reviews: 156,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Hot Springs", "Traditional"],
-    guests: 5,
-    bedrooms: 2,
-    bathrooms: 2,
-    type: "Ryokan",
-  },
+
+// 👑 Your fancy extras pool
+const defaultTags = [
+  ["Forest View", "Hot Spring"],
+  ["Ocean View", "Private Beach"],
+  ["Unique Stay", "Nature"],
+  ["Tree House", "Magical"],
+  ["Mountain View", "Secluded"],
+  ["Traditional", "Hot Springs"],
 ]
+
+const defaultTypes = ["Cottage", "Villa", "Castle", "Tree House", "Ryokan"]
+
+type PropertyList = Property[]
+
+
+const getRandom = (arr: PropertyList) => arr[Math.floor(Math.random() * arr.length)]
+
+// 💫 Core function to fetch + enrich
+const fetchAndEnrichListings = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`)
+    const data = await res.json()
+
+    const enriched = data.map((item: ListingFromBackend) => ({
+      id: item.id,
+      title: item.title,
+      location: item.location,
+      price: item.price,
+      rating: parseFloat((Math.random() * (5 - 4.6) + 4.6).toFixed(1)), // random 4.6–5.0
+      reviews: Math.floor(Math.random() * 150) + 20,
+      image: item.images?.[0]?.url || "/placeholder.svg?height=300&width=400",
+      tags: getRandom(defaultTags),
+      guests: Math.floor(Math.random() * 4) + 2,
+      bedrooms: Math.floor(Math.random() * 3) + 1,
+      bathrooms: Math.floor(Math.random() * 2) + 1,
+      type: getRandom(defaultTypes),
+    }))
+
+    return enriched
+  } catch (err) {
+    console.error("Error fetching listings:", err)
+    return []
+  }
+}
+
+
+type ListingFromBackend = {
+  id: number
+  title: string
+  description?: string
+  location: string
+  latitude?: number
+  longitude?: number
+  price: number
+  userId: number
+  images: { url: string }[]
+}
+
+type Property = {
+  id: number
+  title: string
+  location: string
+  price: number
+  rating: number
+  reviews: number
+  image: string
+  tags: string[]
+  guests: number
+  bedrooms: number
+  bathrooms: number
+  type: string
+}
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -107,6 +93,10 @@ export default function SearchPage() {
   const [selectedType, setSelectedType] = useState("Any type")
   const [guests, setGuests] = useState("Any number")
   const [showFilters, setShowFilters] = useState(false)
+
+  const [Loading, setLoading] = useState(false)
+
+  const [properties, setProperties] = useState<Property[]>([])
 
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
@@ -119,9 +109,22 @@ export default function SearchPage() {
     return matchesSearch && matchesPrice && matchesType && matchesGuests
   })
 
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setLoading(true)
+      const props = await fetchAndEnrichListings()
+      setProperties(props)
+      setLoading(false)
+    }
+
+    fetchProperties()
+  }, [])
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container px-4 md:px-6 py-8">
         {/* Search Header */}

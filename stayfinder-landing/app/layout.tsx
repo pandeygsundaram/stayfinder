@@ -2,7 +2,8 @@ import type React from "react"
 import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import Providers from "@/atoms/providers"
+import Providers from "@/stores/providers"
+import ToasterProvider from "@/components/ToasterProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <Providers>
+            <ToasterProvider />
             {children}
           </Providers>
         </ThemeProvider>

@@ -14,10 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuthStore } from "@/stores/authstore"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // This would come from auth context
+  const { isAuthenticated, logout } = useAuthStore()
+  const router = useRouter()
+  const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,7 +60,7 @@ export function Navbar() {
             Explore
           </Link>
           <Link
-            href="/host"
+            href="/dashboard"
             className="text-sm font-medium hover:text-stayfinder-forest dark:hover:text-purple-400 transition-colors"
           >
             Dashboard
@@ -82,13 +86,7 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
                     <Link href="/profile">Profile Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/history">Booking History</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/bookings">My Bookings</Link>
@@ -98,7 +96,12 @@ export function Navbar() {
                     <Link href="/host">Host Dashboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Sign Out</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout()
+                      router.push("/login")
+                    }}
+                  >Sign Out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

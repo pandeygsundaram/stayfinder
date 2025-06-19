@@ -64,7 +64,7 @@ const booking = {
 export default function BookingConfirmationPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container px-4 md:px-6 py-8">
         {/* Back Button */}

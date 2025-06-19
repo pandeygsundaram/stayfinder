@@ -10,7 +10,9 @@ async function main() {
     user = await prisma.user.create({
       data: {
         email: 'demo@example.com',
-        password: 'hashedpassword123', // Hash this in real life pls
+        password: 'hashedpassword123', 
+        name:'sassy',
+        Age: 20
       },
     });
     console.log('✅ Created demo user');

@@ -12,9 +12,13 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
-
+import { useSetRecoilState } from "recoil"
+import { useAuthStore } from "@/stores/authstore" // 👈 NEW Zustand store
 
 export default function LoginPage() {
+
+  const login = useAuthStore((state) => state.login)
+
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -30,7 +34,9 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      const res = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
+      console.log("Did something")
+      console.log(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,18 +52,21 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("token", data.token)
-      toast.success("Logged in successfully 🚀")
+      login(data.user, data.token)
+
+      toast.success("Logged in successfully 🎉")
       router.push("/dashboard")
     } catch (err) {
       toast.error("Something went wrong 💣")
     } finally {
       setLoading(false)
     }
+  }
 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container px-4 md:px-6 py-12">
         <div className="max-w-md mx-auto">
@@ -126,9 +135,12 @@ export default function LoginPage() {
 
               <Button
                 className="w-full bg-gradient-to-r from-stayfinder-forest to-stayfinder-sage hover:from-stayfinder-forest/90 hover:to-stayfinder-sage/90 text-white"
-                asChild
+                disabled={loading}
+                onClick={handleLogin}
               >
-                <Link href="/dashboard">Sign In</Link>
+                {loading ? "Signing in..." : "Sign In"}
+
+
               </Button>
 
               <div className="relative">

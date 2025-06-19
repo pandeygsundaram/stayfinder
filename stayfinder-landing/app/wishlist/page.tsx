@@ -78,7 +78,7 @@ export default function WishlistPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="container px-4 md:px-6 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -93,7 +93,7 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container px-4 md:px-6 py-8">
         {/* Back Button */}
