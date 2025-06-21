@@ -6,7 +6,7 @@ name: Bun Backend CI
 on:
   push:
     paths:
-      - 'stayfinder-backend-bun/'
+      - 'stayfinder-backend-bun/**'
       - '.github/workflows/node-js.yml'
   pull_request:
     paths:
