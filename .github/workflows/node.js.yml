@@ -31,6 +31,8 @@ jobs:
       run: bun install |
         touch .env
         echo "${{secrets.PROD_ENV_FILE}}"
+      
+    - run : pm2 restart stayfinder-backend
 
 
      # - name: Run tests
