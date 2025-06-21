@@ -7,7 +7,7 @@ on:
   push:
     paths:
       - 'stayfinder-backend-bun/**'
-      - '.github/workflows/node-js.yml'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'stayfinder-backend-bun/**'
@@ -18,7 +18,7 @@ jobs:
     runs-on: self-hosted # on my on ec2 lol
     defaults:
       run:
-        working-directory: stayfinder-backend-bun/**
+        working-directory: stayfinder-backend-bun/
 
     steps:
     - uses: actions/checkout@v4
