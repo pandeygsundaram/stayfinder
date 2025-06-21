@@ -7,7 +7,7 @@ on:
   push:
     paths:
       - 'backend/**'
-      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/node-ys.yml'
   pull_request:
     paths:
       - 'backend/**'
@@ -31,7 +31,7 @@ jobs:
       run: bun install |
         touch .env
         echo "${{secrets.PROD_ENV_FILE}}"
-        
+
 
      # - name: Run tests
      #   run: bun test
