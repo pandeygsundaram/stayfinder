@@ -7,7 +7,7 @@ on:
   push:
     paths:
       - 'stayfinder-backend-bun/**'
-      - '.github/workflows/node-ys.yml'
+      - '.github/workflows/node-js.yml'
   pull_request:
     paths:
       - 'stayfinder-backend-bun/**'
