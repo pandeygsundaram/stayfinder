@@ -18,6 +18,6 @@ app.use('/api/booking', bookingRoutes);
 app.use('/api/wishlist' ,wishlistRoutes );
 
 
-app.listen(3000, () => {
-  console.log('StayFinder backend running on http://localhost:3000 🚀');
+app.listen(process.env.PORT, () => {
+  console.log(`StayFinder backend running on http://localhost:${process.env.PORT} 🚀`);
 });
