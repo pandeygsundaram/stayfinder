@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,7 +33,6 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { EnhancedLeafletMap } from "@/components/enhanced-leaflet-map"
 import { format, differenceInDays } from "date-fns"
@@ -45,9 +44,10 @@ interface PropertyData {
   location: string
   price: number
   images: { id: number; url: string }[]
-  user: { id: number; email: string }
+  user: { id: number; email: string , name:string}
   bookings: { startDate: string; endDate: string }[]
 }
+
 const sampleProperty: PropertyData = {
   id: 1,
   title: "Cozy Mountain Cabin Retreat",
@@ -62,6 +62,8 @@ const sampleProperty: PropertyData = {
   user: {
     id: 42,
     email: "host@example.com",
+    name:"sample"
+
   },
   bookings: [
     { startDate: "2025-06-20", endDate: "2025-06-25" },
@@ -160,7 +162,10 @@ const staticPropertyData = {
   ],
 }
 
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
+export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const {id} = use(params) 
+
+  
   const [property, setProperty] = useState<PropertyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -174,14 +179,15 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   useEffect(() => {
     const fetchProperty = async () => {
       try {
-        // const response = await fetch(`/api/listings/${params.id}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings/${id}`)
 
-        // if (!response.ok) {
-        //   throw new Error("Property not found")
-        // }
+        if (!response.ok) {
+          throw new Error("Property not found")
+        }
 
-        // const data = await response.json()
-        setProperty(sampleProperty)
+        const data = await response.json()
+        console.log(data)
+        setProperty(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
@@ -190,7 +196,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     }
 
     fetchProperty()
-  }, [params.id])
+  }, [id])
 
   const calculateTotal = () => {
     if (!checkIn || !checkOut || !property) return { nights: 0, subtotal: 0, serviceFee: 0, total: 0 }
@@ -358,7 +364,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             <Card className="p-6 border-stayfinder-sage/20">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-stayfinder-forest dark:text-white">
-                  {staticPropertyData.type} hosted by {staticPropertyData.host.name}
+                  {staticPropertyData.type} hosted by {property.user.name}
                 </h2>
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={staticPropertyData.host.avatar || "/placeholder.svg"} />
@@ -577,7 +583,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold text-stayfinder-forest dark:text-white">
-                        {staticPropertyData.host.name}
+                        {property.user.name}
                       </h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>Host since {staticPropertyData.host.joinDate}</span>

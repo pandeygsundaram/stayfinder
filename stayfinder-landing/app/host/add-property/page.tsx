@@ -95,6 +95,9 @@ const amenitiesList = [
 const defaultHouseRules = ["No smoking", "No pets", "No parties or events", "Quiet hours: 10 PM - 8 AM"]
 
 export default function AddPropertyPage() {
+
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [imageLink, setImageLink] = useState("")
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<PropertyFormData>({
@@ -171,6 +174,7 @@ export default function AddPropertyPage() {
     try {
       // Here you would typically upload images first, then create the listing
       console.log("Submitting property:", formData);
+      setSubmitting(true) // start loading
 
       // Prepare your data for the backend
       const payload = {
@@ -207,12 +211,16 @@ export default function AddPropertyPage() {
       const data = await res.json();
       console.log("Listing created successfully:", data);
 
-      // Redirect to host dashboard or property details page
-      window.location.href = "/host";
+      setSuccess(true)
+      setTimeout(() => {
+        window.location.href = "/bookings"
+      }, 2000)
 
     } catch (error: any) {
       console.error("Error creating property:", error.message || error);
       alert("Failed to create listing. Please try again.");
+    } finally {
+      setSubmitting(false)
     }
   };
 
@@ -705,6 +713,25 @@ export default function AddPropertyPage() {
       default:
         return null
     }
+  }
+
+  if (submitting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stayfinder-forest mb-4" />
+        <p className="text-lg text-stayfinder-forest dark:text-white">Publishing your magical property...</p>
+      </div>
+    )
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black text-center">
+        <div className="text-green-500 text-5xl mb-4 animate-bounce">✨</div>
+        <h2 className="text-2xl font-bold text-stayfinder-forest dark:text-white">Success!</h2>
+        <p className="text-muted-foreground">Redirecting to your bookings page...</p>
+      </div>
+    )
   }
 
   return (

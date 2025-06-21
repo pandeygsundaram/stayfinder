@@ -69,14 +69,26 @@ export const getListingById = async (req: TypedRequest<Params>, res: Response<Si
     try {
         const listing = await prisma.listing.findUnique({
             where: { id },
-            include: { images: true, user: true },
+            include: {
+                images: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                bookings: true,
+
+            },
         });
 
         if (!listing) {
             res.status(404).json({ msg: "Listing not found" });
             return
         }
-        res.json(listing);
+        // @ts-ignore
+        res.status(200).json(listing);
     } catch (err) {
         console.error("Error fetching listing:", err);
         res.status(500).json({ msg: "Something went wrong" });

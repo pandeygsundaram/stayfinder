@@ -28,7 +28,10 @@ jobs:
         bun --version
 
     - name: Install dependencies
-      run: bun install
+      run: bun install |
+        touch .env
+        echo "${{secrets.PROD_ENV_FILE}}"
+        
 
      # - name: Run tests
      #   run: bun test

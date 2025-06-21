@@ -1,4 +1,4 @@
-import type { Listing, Image, User } from '../../generated/prisma';
+import type { Listing, Image, User, Booking } from '../../generated/prisma';
 
 type Msg = { msg: string };
 
@@ -8,13 +8,17 @@ export type ListingWithImages = Listing & {
 
 export type ListingWithUser = Listing & {
   user: User;
+  images: Image[];
+
+  bookings: Booking[]
 };
 
 export type ListingFull = Listing & {
   images: Image[];
   user: User;
+
 };
 
 export type ListingsResponse = ListingFull[];
-export type SingleListingResponse = ListingFull | Msg;
+export type SingleListingResponse = ListingWithUser | Msg;
 export type CreateListingResponse = ListingWithImages | Msg;
