@@ -6,11 +6,11 @@ name: Bun Backend CI
 on:
   push:
     paths:
-      - 'backend/**'
+      - 'stayfinder-backend-bun/**'
       - '.github/workflows/node-ys.yml'
   pull_request:
     paths:
-      - 'backend/**'
+      - 'stayfinder-backend-bun/**'
 
 jobs:
   backend-ci: # this is the name of the job basically
@@ -18,7 +18,7 @@ jobs:
     runs-on: self-hosted # on my on ec2 lol
     defaults:
       run:
-        working-directory: backend
+        working-directory: stayfinder-backend-bun/**
 
     steps:
     - uses: actions/checkout@v4
