@@ -45,7 +45,12 @@ export const createListing = async (req: AuthRequest, res: Response<CreateListin
 export const getAllListings = async (_req: Request, res: Response<ListingsResponse | { msg: string }>): Promise<void> => {
     try {
         const listings = await prisma.listing.findMany({
-            include: { images: true, user: true },
+            include: { images: true, user: {
+                select:{
+                    email:true,
+                    id:true
+                }
+            } },
         });
         res.json(listings);
     } catch (err) {
