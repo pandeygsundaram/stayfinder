@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import type { TypedRequest } from '../utils/types'; // path may vary
+import type { TypedAuthRequest, TypedRequest } from '../utils/types'; // path may vary
 import { prisma } from '../prisma/client';
 
 import type { AuthRequest } from '../middlewares/auth.middleware';
@@ -42,7 +42,7 @@ export const createListing = async (req: AuthRequest, res: Response<CreateListin
     }
 };
 
-export const getAllListings = async (_req: Request, res: Response<ListingsResponse | { msg: string }>): Promise<void> => {
+export const getAllListings = async (_req: Request, res: Response): Promise<void> => {
     try {
         const listings = await prisma.listing.findMany({
             include: { images: true, user: {
@@ -60,11 +60,52 @@ export const getAllListings = async (_req: Request, res: Response<ListingsRespon
 };
 
 
+export const getAllListingsWithWishlist = async (req: TypedAuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+
+    const listings = await prisma.listing.findMany({
+      include: {
+        images: true,
+        user: {
+          select: {
+            email: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    let wishlistSet = new Set<number>();
+
+    if (userId) {
+      const wishlistItems = await prisma.wishlist.findMany({
+        where: { userId },
+        select: { listingId: true },
+      });
+
+      wishlistSet = new Set(wishlistItems.map(item => item.listingId));
+    }
+
+    const enrichedListings = listings.map(listing => ({
+      ...listing,
+      isWishlisted: wishlistSet.has(listing.id),
+    }));
+
+    res.json(enrichedListings);
+  } catch (err) {
+    console.error("Error fetching listings:", err);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+
+
 interface Params {
     id: string;
 }
 
-export const getListingById = async (req: TypedRequest<Params>, res: Response<SingleListingResponse>): Promise<void> => {
+export const getListingById = async (req: TypedRequest<Params>, res: Response): Promise<void> => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
         res.status(400).json({ msg: "Invalid ID" })
