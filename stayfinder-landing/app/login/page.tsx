@@ -34,9 +34,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      console.log("Did something")
-      console.log(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
+      const res = await fetch('/api/login', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

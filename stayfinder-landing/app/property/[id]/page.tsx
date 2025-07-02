@@ -183,8 +183,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   useEffect(() => {
     const fetchProperty = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings/${id}`)
-
+        const response = await fetch(`/api/listings/${id}`);
         if (!response.ok) {
           throw new Error("Property not found")
         }

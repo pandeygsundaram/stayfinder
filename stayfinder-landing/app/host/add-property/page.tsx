@@ -194,10 +194,10 @@ export default function AddPropertyPage() {
         throw new Error("User is not authenticated");
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`, {
-        method: "POST",
+      const res = await fetch('/api/listings', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
@@ -209,7 +209,6 @@ export default function AddPropertyPage() {
       }
 
       const data = await res.json();
-      console.log("Listing created successfully:", data);
 
       setSuccess(true)
       setTimeout(() => {
