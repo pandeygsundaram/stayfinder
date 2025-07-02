@@ -83,7 +83,14 @@ export const getListingById = async (req: TypedRequest<Params>, res: Response<Si
                         email: true,
                     },
                 },
-                bookings: true,
+                bookings: {
+                    select :{
+                        id:true,
+                        startDate:true,
+                        endDate:true,
+                        status:true,
+                    }
+                }
 
             },
         });

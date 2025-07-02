@@ -55,6 +55,13 @@ model Booking {
   userId    Int
   listing   Listing  @relation(fields: [listingId], references: [id])
   listingId Int
+  status  BookingState @default(Pending)
+}
+
+enum BookingState {
+  Approved
+  Pending
+  Rejected
 }
 
 model Wishlist {
