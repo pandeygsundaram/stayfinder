@@ -49,7 +49,7 @@ export function FeaturedListings() {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`)
+        const res = await fetch('/api/listings');
         const data: ListingFromBackend[] = await res.json()
 
         const enriched = data.slice(0, 3).map((item) => ({

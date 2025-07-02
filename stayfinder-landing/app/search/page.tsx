@@ -34,7 +34,7 @@ const getRandom = (arr: PropertyList) => arr[Math.floor(Math.random() * arr.leng
 // 💫 Core function to fetch + enrich
 const fetchAndEnrichListings = async () => {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`)
+    const res = await fetch('/api/listings');
     const data = await res.json()
 
     const enriched = data.map((item: ListingFromBackend) => ({
