@@ -8,6 +8,7 @@ type User = {
 
 type AuthState = {
   isAuthenticated: boolean
+  isInitializing: boolean
   user: User | null
   token: string | null
   login: (user: User, token: string) => void
@@ -17,6 +18,7 @@ type AuthState = {
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
+  isInitializing: true,
   user: null,
   token: null,
   login: (user, token) => {
@@ -29,7 +31,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   initAuth: async () => {
     const token = localStorage.getItem("token")
-    if (!token) return
+    if (!token) {
+      set({ isInitializing: false })
+      return
+    }
 
     try {
       const res = await fetch("/api/me", {
@@ -44,6 +49,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err) {
       localStorage.removeItem("token")
       set({ isAuthenticated: false, user: null, token: null })
+    }finally {
+      set({ isInitializing: false })
     }
   },
 }))
