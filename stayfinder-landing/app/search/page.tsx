@@ -8,95 +8,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Star, MapPin, Filter, Search, Heart } from "lucide-react"
+import { Star, MapPin, Filter, Search, Heart, Loader2, } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { Footer } from "@/components/footer"
-
-
-// 👑 Your fancy extras pool
-const defaultTags = [
-  ["Forest View", "Hot Spring"],
-  ["Ocean View", "Private Beach"],
-  ["Unique Stay", "Nature"],
-  ["Tree House", "Magical"],
-  ["Mountain View", "Secluded"],
-  ["Traditional", "Hot Springs"],
-]
-
-const defaultTypes = ["Cottage", "Villa", "Castle", "Tree House", "Ryokan"]
-
-type PropertyList = Property[]
-
-
-const getRandom = (arr: PropertyList) => arr[Math.floor(Math.random() * arr.length)]
-
-// 💫 Core function to fetch + enrich
-const fetchAndEnrichListings = async () => {
-  try {
-    const res = await fetch('/api/listings');
-    const data = await res.json()
-
-    const enriched = data.map((item: ListingFromBackend) => ({
-      id: item.id,
-      title: item.title,
-      location: item.location,
-      price: item.price,
-      rating: parseFloat((Math.random() * (5 - 4.6) + 4.6).toFixed(1)), // random 4.6–5.0
-      reviews: Math.floor(Math.random() * 150) + 20,
-      image: item.images?.[0]?.url || "/placeholder.svg?height=300&width=400",
-      tags: getRandom(defaultTags),
-      guests: Math.floor(Math.random() * 4) + 2,
-      bedrooms: Math.floor(Math.random() * 3) + 1,
-      bathrooms: Math.floor(Math.random() * 2) + 1,
-      type: getRandom(defaultTypes),
-    }))
-
-    return enriched
-  } catch (err) {
-    console.error("Error fetching listings:", err)
-    return []
-  }
-}
-
-
-type ListingFromBackend = {
-  id: number
-  title: string
-  description?: string
-  location: string
-  latitude?: number
-  longitude?: number
-  price: number
-  userId: number
-  images: { url: string }[]
-}
-
-type Property = {
-  id: number
-  title: string
-  location: string
-  price: number
-  rating: number
-  reviews: number
-  image: string
-  tags: string[]
-  guests: number
-  bedrooms: number
-  bathrooms: number
-  type: string
-}
+import { useAuthStore } from "@/stores/authstore"
+import { fetchAndEnrichListings, Property } from "./fetchAndEnrich"
+import { toggleWishlist } from "../wishlist/wishlist.api"
+import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
 
 export default function SearchPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [priceRange, setPriceRange] = useState([0, 2000])
   const [selectedType, setSelectedType] = useState("Any type")
   const [guests, setGuests] = useState("Any number")
   const [showFilters, setShowFilters] = useState(false)
-
   const [loading, setloading] = useState(true)
-
   const [properties, setProperties] = useState<Property[]>([])
+  const { isAuthenticated, user, token, isInitializing } = useAuthStore()
+  const [wishlistLoadingId, setWishlistLoadingId] = useState<number | null>(null)
 
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
@@ -109,17 +40,50 @@ export default function SearchPage() {
     return matchesSearch && matchesPrice && matchesType && matchesGuests
   })
 
+  const handleToggleWishlist = async (propertyId: number) => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to add to wishlist")
+      return
+    }
+
+
+    try {
+      setWishlistLoadingId(propertyId) // 🌀 show loader on this one
+
+      const updated = [...properties]
+      const index = updated.findIndex(p => p.id === propertyId)
+      const current = updated[index]
+
+      updated[index] = { ...current, isWishlisted: !current.isWishlisted }
+      setProperties(updated)
+
+      if (!current.isWishlisted) {
+        current.isWishlisted = false
+      }
+      await toggleWishlist(propertyId, current.isWishlisted)
+
+    } catch (err) {
+      console.error("Toggle wishlist failed", err)
+      // Optionally: revert state on failure
+    } finally {
+      setWishlistLoadingId(null) // ✅ remove loader
+    }
+  }
+
   useEffect(() => {
-    setloading(true)
+    if (isInitializing) return;
+
     const fetchProperties = async () => {
-      const props = await fetchAndEnrichListings()
-      console.log(props)
+      setloading(true)
+      const props = await fetchAndEnrichListings(isAuthenticated, token || undefined)
       setProperties(props)
+      console.log(props)
       setloading(false)
     }
 
+
     fetchProperties()
-  }, [])
+  }, [isInitializing])
 
   if (loading) {
     return (
@@ -139,7 +103,6 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
-      {/* <Navbar /> */}
 
       <main className="container px-4 md:px-6 py-8">
         {/* Search Header */}
@@ -234,21 +197,46 @@ export default function SearchPage() {
         {/* Property Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProperties.map((property) => (
-            <Link href={`/property/${property.id}`} key={property.id} className="group">
-              <Card className="overflow-hidden transition-all duration-300 hover:shadow-premium premium-card border-stayfinder-sage/20 dark:border-purple-900">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={property.image || "/placeholder.svg"}
-                    alt={property.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 bg-white/80 hover:bg-white">
-                    <Heart className="h-4 w-4" />
+            <Card className="overflow-hidden transition-all duration-300 hover:shadow-premium premium-card border-stayfinder-sage/20 dark:border-purple-900"
+              key={property.id}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <Image
+                  src={property.image || "/placeholder.svg"}
+                  alt={property.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute top-2 right-2 z-10">
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+
+                    className="bg-white/80 hover:bg-white cursor-pointer"
+                    onClick={(e) => {
+                      console.log("Button clicked")
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleToggleWishlist(property.id)
+                    }}
+                    disabled={wishlistLoadingId === property.id}
+                  >
+                    {wishlistLoadingId === property.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    ) : property.isWishlisted ? (
+                      <Heart className="h-4 w-4 fill-red-500 text-red-500 transition" />
+                    ) : (
+                      <Heart className="h-4 w-4 text-gray-700 transition" />
+                    )}
                   </Button>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+
+              <div onClick={() => router.push(`/property/${property.id}`)}
+                className="group">
                 <CardHeader className="p-4">
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-lg text-stayfinder-forest dark:text-white">{property.title}</h3>
@@ -286,8 +274,8 @@ export default function SearchPage() {
                   </div>
                   <div className="text-sm text-muted-foreground">{property.reviews} reviews</div>
                 </CardFooter>
-              </Card>
-            </Link>
+              </div>
+            </Card>
           ))}
         </div>
 

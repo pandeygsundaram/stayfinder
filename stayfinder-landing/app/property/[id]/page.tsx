@@ -36,6 +36,7 @@ import Link from "next/link"
 import { Footer } from "@/components/footer"
 import { EnhancedLeafletMap } from "@/components/enhanced-leaflet-map"
 import { format, differenceInDays } from "date-fns"
+import { createBooking } from "./createBooking"
 
 interface PropertyData {
   id: number
@@ -48,28 +49,6 @@ interface PropertyData {
   bookings: { startDate: string; endDate: string }[]
 }
 
-const sampleProperty: PropertyData = {
-  id: 1,
-  title: "Cozy Mountain Cabin Retreat",
-  description: "Escape the chaos and chill in this serene mountain-side wooden cabin. WiFi, fireplace, and vibes included.",
-  location: "Manali, Himachal Pradesh",
-  price: 4500,
-  images: [
-    { id: 101, url: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { id: 102, url: "https://images.unsplash.com/photo-1529290130-4ca3753253ae?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { id: 103, url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-  ],
-  user: {
-    id: 42,
-    email: "host@example.com",
-    name: "sample"
-
-  },
-  bookings: [
-    { startDate: "2025-06-20", endDate: "2025-06-25" },
-    { startDate: "2025-07-01", endDate: "2025-07-05" },
-  ],
-}
 
 // Enhanced static data for features not yet in database
 const staticPropertyData = {
@@ -172,7 +151,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [selectedImage, setSelectedImage] = useState(0)
   const [checkIn, setCheckIn] = useState<Date>()
   const [checkOut, setCheckOut] = useState<Date>()
-  const [guests, setGuests] = useState("2")
+  const [guests, setGuests] = useState(2)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
   const [success, setSuccess] = useState(false)
@@ -243,61 +222,39 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     if (!checkIn || !checkOut) return
 
     try {
+      setSubmitting(true);
 
-      // Here you would typically upload images first, then create the listing
-      setSubmitting(true) // start loading
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User is not authenticated");
+      if (!property) return
 
-      // Prepare your data for the backend
+      await createBooking({
+        listingId: property.id,
+        checkIn,
+        checkOut,
+        guests,
+        token,
+      });
+
+      setSuccess(true);
 
       const searchParams = new URLSearchParams({
         checkin: checkIn.toISOString(),
         checkout: checkOut.toISOString(),
-        guests: guests,
-      })
+        guests: guests.toString(),
+      });
 
-
-      // Get token (assuming you stored it in localStorage after login)
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("User is not authenticated");
-      }
-
-
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      // const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify(payload),
-      // });
-
-      // if (!res.ok) {
-      //   const errorRes = await res.json();
-      //   throw new Error(errorRes.msg || "Failed to create listing");
-      // }
-
-      // const data = await res.json();
-      // console.log("Listing created successfully:", data);
-
-      setSuccess(true)
       setTimeout(() => {
-        window.location.href = `/booking/${property?.id}?${searchParams}`
-      }, 2000)
+        window.location.href = `/booking/${property?.id}?${searchParams}`;
+      }, 2000);
 
     } catch (error: any) {
-      console.error("Error creating property:", error.message || error);
-      alert("Failed to create listing. Please try again.");
-
+      console.error("Error creating booking:", error.message || error);
+      alert("Failed to create booking. Please try again.");
     } finally {
-
-      setSubmitting(false)
-
+      setSubmitting(false);
     }
-
-  }
+  };
 
   if (loading) {
     return (
@@ -336,7 +293,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stayfinder-forest mb-4" />
-        <p className="text-lg text-stayfinder-forest dark:text-white">Publishing your magical property...</p>
+        <p className="text-lg text-stayfinder-forest dark:text-white">Making Reservation for your magical property...</p>
       </div>
     )
   }
@@ -767,7 +724,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </Popover>
                 </div>
 
-                <Select value={guests} onValueChange={setGuests}>
+                <Select value={String(guests)} onValueChange={(guest) => setGuests(Number(guest))}>
                   <SelectTrigger>
                     <Users className="mr-2 h-4 w-4" />
                     <SelectValue />

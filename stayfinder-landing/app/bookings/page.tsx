@@ -77,29 +77,33 @@ export default function BookingHistoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        // This would normally use the current user's ID from auth context
-        // const userId = 1 // Placeholder - replace with actual user ID
+useEffect(() => {
+  const fetchBookings = async () => {
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "GET",
+        headers: {
+          // if you're storing token in cookies, you might not need this,
+          // but if you're using localStorage or context:
+          Authorization: `Bearer ${localStorage.getItem("token")}`, 
+        },
+      });
 
-        // const response = await fetch(`/api/bookings?userId=${userId}`)
-
-        // if (!response.ok) {
-        //   throw new Error("Failed to fetch booking history")
-        // }
-
-        // const data = await response.json()
-        setBookings(bookingHistory)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred")
-      } finally {
-        setLoading(false)
+      if (!response.ok) {
+        throw new Error("Failed to fetch booking history");
       }
-    }
 
-    fetchBookings()
-  }, [])
+      const data = await response.json();
+      setBookings(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchBookings();
+}, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
