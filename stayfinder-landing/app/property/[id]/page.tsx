@@ -44,7 +44,7 @@ interface PropertyData {
   location: string
   price: number
   images: { id: number; url: string }[]
-  user: { id: number; email: string , name:string}
+  user: { id: number; email: string, name: string }
   bookings: { startDate: string; endDate: string }[]
 }
 
@@ -62,7 +62,7 @@ const sampleProperty: PropertyData = {
   user: {
     id: 42,
     email: "host@example.com",
-    name:"sample"
+    name: "sample"
 
   },
   bookings: [
@@ -163,9 +163,9 @@ const staticPropertyData = {
 }
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const {id} = use(params) 
+  const { id } = use(params)
 
-  
+
   const [property, setProperty] = useState<PropertyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -175,6 +175,10 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [guests, setGuests] = useState("2")
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
+  const [success, setSuccess] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -236,16 +240,64 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     }
   }
 
-  const handleReserve = () => {
+  const handleReserve = async () => {
     if (!checkIn || !checkOut) return
 
-    const searchParams = new URLSearchParams({
-      checkin: checkIn.toISOString(),
-      checkout: checkOut.toISOString(),
-      guests: guests,
-    })
+    try {
 
-    window.location.href = `/booking/${property?.id}?${searchParams}`
+      // Here you would typically upload images first, then create the listing
+      setSubmitting(true) // start loading
+
+      // Prepare your data for the backend
+
+      const searchParams = new URLSearchParams({
+        checkin: checkIn.toISOString(),
+        checkout: checkOut.toISOString(),
+        guests: guests,
+      })
+
+
+      // Get token (assuming you stored it in localStorage after login)
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("User is not authenticated");
+      }
+
+
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      // const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      //   body: JSON.stringify(payload),
+      // });
+
+      // if (!res.ok) {
+      //   const errorRes = await res.json();
+      //   throw new Error(errorRes.msg || "Failed to create listing");
+      // }
+
+      // const data = await res.json();
+      // console.log("Listing created successfully:", data);
+
+      setSuccess(true)
+      setTimeout(() => {
+        window.location.href = `/booking/${property?.id}?${searchParams}`
+      }, 2000)
+
+    } catch (error: any) {
+      console.error("Error creating property:", error.message || error);
+      alert("Failed to create listing. Please try again.");
+
+    } finally {
+
+      setSubmitting(false)
+
+    }
+
   }
 
   if (loading) {
@@ -276,6 +328,26 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             </Button>
           </div>
         </main>
+      </div>
+    )
+  }
+
+
+  if (submitting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stayfinder-forest mb-4" />
+        <p className="text-lg text-stayfinder-forest dark:text-white">Publishing your magical property...</p>
+      </div>
+    )
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black text-center">
+        <div className="text-green-500 text-5xl mb-4 animate-bounce">✨</div>
+        <h2 className="text-2xl font-bold text-stayfinder-forest dark:text-white">Success!</h2>
+        <p className="text-muted-foreground">Redirecting to your bookings page...</p>
       </div>
     )
   }
@@ -555,8 +627,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                               <Star
                                 key={i}
                                 className={`h-3 w-3 ${i < review.rating
-                                    ? "fill-stayfinder-gold text-stayfinder-gold"
-                                    : "text-muted-foreground"
+                                  ? "fill-stayfinder-gold text-stayfinder-gold"
+                                  : "text-muted-foreground"
                                   }`}
                               />
                             ))}

@@ -1,3 +1,4 @@
+"use client"
 import { HeroSection } from "@/components/hero-section"
 import { Navbar } from "@/components/navbar"
 import { FeaturedListings } from "@/components/featured-listings"

@@ -1,43 +1,77 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Star, MapPin } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-const listings = [
-  {
-    id: 1,
-    title: "Enchanted Forest Cottage",
-    location: "Miyazaki Woods, Japan",
-    price: 120,
-    rating: 4.9,
-    reviews: 124,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Forest View", "Hot Spring"],
-  },
-  {
-    id: 2,
-    title: "Seaside Spirited Villa",
-    location: "Coastal Village, Italy",
-    price: 195,
-    rating: 4.8,
-    reviews: 86,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Ocean View", "Private Beach"],
-  },
-  {
-    id: 3,
-    title: "Floating Sky Castle",
-    location: "Mountain Heights, New Zealand",
-    price: 250,
-    rating: 5.0,
-    reviews: 42,
-    image: "/placeholder.svg?height=300&width=400",
-    tags: ["Mountain View", "Unique Stay"],
-  },
+const defaultTags = [
+  ["Forest View", "Hot Spring"],
+  ["Ocean View", "Private Beach"],
+  ["Unique Stay", "Nature"],
+  ["Tree House", "Magical"],
+  ["Mountain View", "Secluded"],
+  ["Traditional", "Hot Springs"],
 ]
 
+const defaultTypes = ["Cottage", "Villa", "Castle", "Tree House", "Ryokan"]
+
+const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)]
+
+type ListingFromBackend = {
+  id: number
+  title: string
+  description?: string
+  location: string
+  latitude?: number
+  longitude?: number
+  price: number
+  userId: number
+  images: { url: string }[]
+}
+
+type Property = {
+  id: number
+  title: string
+  location: string
+  price: number
+  rating: number
+  reviews: number
+  image: string
+  tags: string[]
+}
+
 export function FeaturedListings() {
+  const [listings, setListings] = useState<Property[]>([])
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/listings`)
+        const data: ListingFromBackend[] = await res.json()
+
+        const enriched = data.slice(0, 3).map((item) => ({
+          id: item.id,
+          title: item.title,
+          location: item.location,
+          price: item.price,
+          rating: parseFloat((Math.random() * (5 - 4.6) + 4.6).toFixed(1)),
+          reviews: Math.floor(Math.random() * 150) + 20,
+          image: item.images?.[0]?.url || "/placeholder.svg?height=300&width=400",
+          tags: getRandom(defaultTags),
+        }))
+
+        setListings(enriched)
+      } catch (err) {
+        console.error("Failed to fetch featured listings:", err)
+      }
+    }
+
+    fetchListings()
+  }, [])
+
   return (
     <section className="py-12 md:py-24">
       <div className="container px-4 md:px-6">
@@ -54,14 +88,14 @@ export function FeaturedListings() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {listings.map((listing) => (
-            <Link href="#" key={listing.id} className="group">
+            <Link href={`/property/${listing.id}`} key={listing.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:shadow-premium premium-card border-stayfinder-sage/20 dark:border-purple-900">
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative h-64 w-full overflow-hidden">
                   <Image
-                    src={listing.image || "/placeholder.svg"}
+                    src={listing.image}
                     alt={listing.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
@@ -76,7 +110,7 @@ export function FeaturedListings() {
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
-                    {listing.location}
+                    <span className="truncate">{listing.location}</span>
                   </div>
                 </CardHeader>
 
@@ -109,7 +143,7 @@ export function FeaturedListings() {
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-stayfinder-forest to-stayfinder-sage dark:from-purple-500 dark:to-pink-500 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
             <Link
-              href="#"
+              href="/search"
               className="relative inline-flex items-center justify-center px-8 py-3 bg-white dark:bg-indigo-950 text-stayfinder-forest dark:text-purple-400 border border-stayfinder-sage/30 dark:border-purple-800 hover:bg-stayfinder-cream/50 dark:hover:bg-indigo-900 rounded-lg font-medium shadow-premium hover:shadow-premium-hover"
             >
               Explore All Stays
