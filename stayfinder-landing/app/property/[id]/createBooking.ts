@@ -3,19 +3,17 @@ export async function createBooking({
   checkIn,
   checkOut,
   guests,
-  token,
 }: {
   listingId: number;
   checkIn: Date;
   checkOut: Date;
   guests: number;
-  token: string;
 }) {
   const res = await fetch("/api/bookings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      credentials: "include",
     },
     body: JSON.stringify({
       listingId,

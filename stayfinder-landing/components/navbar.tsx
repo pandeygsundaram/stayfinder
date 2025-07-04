@@ -19,10 +19,10 @@ import { useRouter } from "next/navigation"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const { isAuthenticated, logout } = useAuthStore()
+  const { logout } = useAuthStore()
   const router = useRouter()
   const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
-  const { isInitializing } = useAuthStore()
+  const { isAuthenticated, isInitializing } = useAuthStore()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,12 +60,14 @@ export function Navbar() {
           >
             Explore
           </Link>
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium hover:text-stayfinder-forest dark:hover:text-purple-400 transition-colors"
-          >
-            Dashboard
-          </Link>
+          {!isInitializing && isAuthenticated && (
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium hover:text-stayfinder-forest dark:hover:text-purple-400 transition-colors"
+            >
+              Dashboard
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-4">
@@ -95,7 +97,7 @@ export function Navbar() {
               </svg>
             </div>
           ) :
-            isLoggedIn ? (
+            isAuthenticated ? (
               <div className="hidden md:flex items-center gap-2" >
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/search">

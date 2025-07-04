@@ -38,7 +38,7 @@ import { Footer } from "@/components/footer"
 import { EnhancedLeafletMap } from "@/components/enhanced-leaflet-map"
 import { format, differenceInDays } from "date-fns"
 import { createBooking } from "./createBooking"
-import { toggleWishlist } from "@/app/wishlist/wishlist.api"
+import { toggleWishlist } from "@/app/(protected)/wishlist/wishlist.api"
 import toast from "react-hot-toast"
 import { useAuthStore } from "@/stores/authstore"
 
@@ -167,29 +167,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const { isAuthenticated, user, token, isInitializing } = useAuthStore()
 
 
-
-  // const checkIfWishlisted = async (listingId: number) => {
-  //   if(isInitializing ){
-  //     return
-  //   }
-  //   if(!isAuthenticated){
-  //     toast.error("Please login first")
-  //   }
-
-  //   const res = await fetch(`/api/wishlist/${listingId}`, {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   });
-
-  //   if (res.ok) {
-  //     const data = await res.json();
-  //     return data.isWishlisted; 
-  //   }
-
-  //   return false;
-  // };
-
   useEffect(() => {
     const fetchProperty = async () => {
       try {
@@ -224,9 +201,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
         if (res.ok) {
           const data = await res.json();
-          console.log("THis is the data from the check wishlist function",data)
+          console.log("THis is the data from the check wishlist function", data)
           setIsWishlisted(data.isWishlisted);
-          console.log("THis is the 2nd data from the check wishlist function",data)
+          console.log("THis is the 2nd data from the check wishlist function", data)
 
         }
       } catch (err) {
@@ -265,15 +242,25 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     setWishtlistLoading(true)
 
     try {
+      if (isInitializing) {
+        toast.error("Please wait...")
+        return
+      }
+      if (!isAuthenticated) {
+        toast.error("Please login ")
+        return
+      }
+
+
       if (!property) {
         toast.error("Unexpected error occured")
         return
       }
       console.log(property.id, property.isWishlisted)
-      const res = await toggleWishlist(property.id, property.isWishlisted)
+      const res = await toggleWishlist(property.id, isWishlisted)
 
       console.log(res)
-      setIsWishlisted(true)
+      setIsWishlisted(!isWishlisted)
 
     } catch (error) {
       console.error("Error toggling wishlist:", error)
@@ -288,16 +275,21 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     try {
       setSubmitting(true);
 
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("User is not authenticated");
       if (!property) return
+      if (!isInitializing) {
+        toast.error("Still initializing, Please wait..")
+        return
+      }
+      if (!isAuthenticated ) {
+        toast.error("Please Login!!..")
+        return
+      }
 
       await createBooking({
         listingId: property.id,
         checkIn,
         checkOut,
         guests,
-        token,
       });
 
       setSuccess(true);

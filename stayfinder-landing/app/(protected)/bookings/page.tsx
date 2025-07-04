@@ -83,9 +83,7 @@ useEffect(() => {
       const response = await fetch("/api/bookings", {
         method: "GET",
         headers: {
-          // if you're storing token in cookies, you might not need this,
-          // but if you're using localStorage or context:
-          Authorization: `Bearer ${localStorage.getItem("token")}`, 
+          credentials: "include",
         },
       });
 

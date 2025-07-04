@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
 import { useSetRecoilState } from "recoil"
 import { useAuthStore } from "@/stores/authstore" // 👈 NEW Zustand store
+import { cookies } from 'next/headers'
 
 export default function LoginPage() {
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
+
     if (!email || !password) {
       toast.error("Bruh... Fill all the fields 😑")
       return
@@ -49,7 +51,6 @@ export default function LoginPage() {
         return
       }
 
-      localStorage.setItem("token", data.token)
       login(data.user, data.token)
 
       toast.success("Logged in successfully 🎉")

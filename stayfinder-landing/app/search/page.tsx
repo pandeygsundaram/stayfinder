@@ -13,7 +13,7 @@ import Image from "next/image"
 import { Footer } from "@/components/footer"
 import { useAuthStore } from "@/stores/authstore"
 import { fetchAndEnrichListings, Property } from "./fetchAndEnrich"
-import { toggleWishlist } from "../wishlist/wishlist.api"
+import { toggleWishlist } from "../(protected)/wishlist/wishlist.api"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 
@@ -54,13 +54,14 @@ export default function SearchPage() {
       const index = updated.findIndex(p => p.id === propertyId)
       const current = updated[index]
 
-      updated[index] = { ...current, isWishlisted: !current.isWishlisted }
-      setProperties(updated)
-
       if (!current.isWishlisted) {
         current.isWishlisted = false
       }
       await toggleWishlist(propertyId, current.isWishlisted)
+      
+      updated[index] = { ...current, isWishlisted: !current.isWishlisted }
+      setProperties(updated)
+      
 
     } catch (err) {
       console.error("Toggle wishlist failed", err)
