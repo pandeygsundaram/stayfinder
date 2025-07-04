@@ -84,6 +84,29 @@ export const getWishlist = async (req: TypedAuthRequest, res: Response) => {
 };
 
 
+export const checkWishlistStatus : RequestHandler<Params>= async (
+    req: TypedAuthRequest<Params>,
+    res: Response
+) => {
+    const listingId = parseInt(req.params.id);
+    const userId = req.userId;
 
+    if (!userId || isNaN(listingId)) {
+        res.status(400).json({ msg: "Invalid request" });
+        return;
+    }
 
+    try {
+        const wishlist = await prisma.wishlist.findFirst({
+            where: {
+                userId,
+                listingId,
+            },
+        });
 
+        res.status(200).json({ isWishlisted: !!wishlist });
+    } catch (err) {
+        console.error("Error checking wishlist status:", err);
+        res.status(500).json({ msg: "Something went wrong" });
+    }
+};
