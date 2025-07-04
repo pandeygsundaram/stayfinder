@@ -2,10 +2,11 @@
 
 import { NextRequest } from 'next/server';
 
-export async function GET(req: NextRequest): Promise<Response> {
-  const token = req.headers.get('authorization');
 
-  if (!token) {
+export async function GET(req: NextRequest): Promise<Response> {
+  const cookieHeader = req.headers.get('cookie')
+
+  if (!cookieHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
     });
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   try {
     const res = await fetch(`${process.env.BACKEND_URL}/api/auth/me`, {
       headers: {
-        Authorization: token,
+        'Cookie': cookieHeader || '',
       },
     });
 

@@ -3,19 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest): Promise<Response> {
     try {
 
-        const token = req.headers.get("authorization");
+        const cookieHeader = req.headers.get('cookie')
 
-        if (!token) {
+        if (!cookieHeader) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         const res = await fetch(`${process.env.BACKEND_URL}/api/listings/private`, {
             method: "GET",
-            headers: { Authorization: token },
+            headers: { 'Cookie': cookieHeader || '', },
         });
 
         const data = await res.json();
-        console.log(data)
         return Response.json(data);
     } catch (err) {
         return new Response(

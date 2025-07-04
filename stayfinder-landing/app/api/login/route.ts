@@ -1,6 +1,7 @@
+import { NextApiResponse } from 'next';
 import { NextRequest } from 'next/server'
 
-export async function POST(req:NextRequest) {
+export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
     const body = await req.json(); // get email & password from request
 
@@ -14,9 +15,17 @@ export async function POST(req:NextRequest) {
 
     const data = await response.json();
 
+    const cookie = response.headers.get('set-cookie')
+
+    const headers = new Headers()
+
+    if (cookie) {
+      headers.set('Set-Cookie', cookie)
+    }
     return new Response(JSON.stringify(data), {
       status: response.status,
-    });
+      headers,
+    })
   } catch (error) {
     console.error('Login error:', error);
     return new Response(JSON.stringify({ error: 'Login failed' }), {

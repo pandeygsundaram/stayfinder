@@ -11,9 +11,9 @@ type AuthState = {
   isInitializing: boolean
   user: User | null
   token: string | null
-  login: (user: User, token: string) => void
-  logout: () => void
-  initAuth: () => void
+  login: (user: User, token?: string) => void
+  logout: () => Promise<void>
+  initAuth: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -21,35 +21,42 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitializing: true,
   user: null,
   token: null,
-  login: (user, token) => {
-    localStorage.setItem("token", token)
-    set({ isAuthenticated: true, user, token })
-  },
-  logout: () => {
-    localStorage.removeItem("token")
-    set({ isAuthenticated: false, user: null, token: null })
-  },
-  initAuth: async () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      set({ isInitializing: false })
-      return
-    }
 
+  login: (user) => {
+    set({ isAuthenticated: true, user })
+  },
+
+  logout: async () => {
+    try {
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (e) {
+      console.error("Failed to logout cleanly", e)
+    } finally {
+      set({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+      })
+    }
+  },
+
+  initAuth: async () => {
     try {
       const res = await fetch("/api/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        method: "GET",
+        credentials: "include",
       })
+
+      if (!res.ok) throw new Error("Unauthorized")
+
       const user = await res.json()
-      set({ isAuthenticated: true, user, token })
-
-
+      set({ isAuthenticated: true, user })
     } catch (err) {
-      localStorage.removeItem("token")
-      set({ isAuthenticated: false, user: null, token: null })
-    }finally {
+      await useAuthStore.getState().logout()
+    } finally {
       set({ isInitializing: false })
     }
   },

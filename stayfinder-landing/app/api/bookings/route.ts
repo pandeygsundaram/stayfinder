@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const token = req.headers.get("authorization");
+    const cookieHeader = req.headers.get('cookie')
 
-    if (!token) {
+    if (!cookieHeader) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -14,12 +14,10 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token,
+        'Cookie': cookieHeader || '',
       },
       body: JSON.stringify(body),
     });
-
-    console.log(backendRes)
 
     const data = await backendRes.json();
 
@@ -39,16 +37,17 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get("authorization");
+    const cookieHeader = req.headers.get('cookie')
 
-    if (!token) {
+    if (!cookieHeader) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const backendRes = await fetch(`${process.env.BACKEND_URL}/api/booking`, {
       method: "GET",
       headers: {
-        Authorization: token,
+        "Content-Type": "application/json",
+        'Cookie': cookieHeader || '',
       },
     });
 
