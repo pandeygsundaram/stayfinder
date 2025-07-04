@@ -30,6 +30,7 @@ import {
   Mountain,
   Check,
   X,
+  Loader2,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -37,6 +38,9 @@ import { Footer } from "@/components/footer"
 import { EnhancedLeafletMap } from "@/components/enhanced-leaflet-map"
 import { format, differenceInDays } from "date-fns"
 import { createBooking } from "./createBooking"
+import { toggleWishlist } from "@/app/wishlist/wishlist.api"
+import toast from "react-hot-toast"
+import { useAuthStore } from "@/stores/authstore"
 
 interface PropertyData {
   id: number
@@ -47,6 +51,8 @@ interface PropertyData {
   images: { id: number; url: string }[]
   user: { id: number; email: string, name: string }
   bookings: { startDate: string; endDate: string }[]
+  isWishlisted: boolean
+
 }
 
 
@@ -156,8 +162,33 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [activeTab, setActiveTab] = useState("overview")
   const [success, setSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [isWishtlistLoading, setWishtlistLoading] = useState(false)
+
+  const { isAuthenticated, user, token, isInitializing } = useAuthStore()
 
 
+
+  // const checkIfWishlisted = async (listingId: number) => {
+  //   if(isInitializing ){
+  //     return
+  //   }
+  //   if(!isAuthenticated){
+  //     toast.error("Please login first")
+  //   }
+
+  //   const res = await fetch(`/api/wishlist/${listingId}`, {
+  //     headers: {
+  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     },
+  //   });
+
+  //   if (res.ok) {
+  //     const data = await res.json();
+  //     return data.isWishlisted; 
+  //   }
+
+  //   return false;
+  // };
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -180,6 +211,33 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     fetchProperty()
   }, [id])
 
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (!property || isInitializing || !isAuthenticated) return;
+
+      try {
+        const res = await fetch(`/api/wishlist/${property.id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log("THis is the data from the check wishlist function",data)
+          setIsWishlisted(data.isWishlisted);
+          console.log("THis is the 2nd data from the check wishlist function",data)
+
+        }
+      } catch (err) {
+        console.error("Error checking wishlist:", err);
+      }
+    };
+
+    checkWishlist();
+  }, [property, isInitializing, isAuthenticated]);
+
+
   const calculateTotal = () => {
     if (!checkIn || !checkOut || !property) return { nights: 0, subtotal: 0, serviceFee: 0, total: 0 }
 
@@ -201,20 +259,26 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     })
   }
 
-  const toggleWishlist = async () => {
-    try {
-      const userId = 1 // This would come from auth context
-      const response = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, listingId: property?.id }),
-      })
+  const toggleWishlisthelper = async () => {
 
-      if (response.ok) {
-        setIsWishlisted(!isWishlisted)
+    console.log("Runnnig the toggle function")
+    setWishtlistLoading(true)
+
+    try {
+      if (!property) {
+        toast.error("Unexpected error occured")
+        return
       }
+      console.log(property.id, property.isWishlisted)
+      const res = await toggleWishlist(property.id, property.isWishlisted)
+
+      console.log(res)
+      setIsWishlisted(true)
+
     } catch (error) {
       console.error("Error toggling wishlist:", error)
+    } finally {
+      setWishtlistLoading(false)
     }
   }
 
@@ -349,12 +413,23 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               <Button
                 variant="outline"
                 size="sm"
-                onClick={toggleWishlist}
-                className={isWishlisted ? "bg-red-50 border-red-200" : ""}
+                disabled={isWishtlistLoading}
+                onClick={() => {
+                  toggleWishlisthelper()
+                }}
+                className={`transition-colors ${property.isWishlisted ? "bg-red-50 border-red-200" : ""}`}
               >
-                <Heart className={`w-4 h-4 mr-2 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                {isWishtlistLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2 text-gray-500" />
+                ) : (
+                  <Heart
+                    className={`w-4 h-4 mr-2 transition-all ${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500"
+                      }`}
+                  />
+                )}
                 {isWishlisted ? "Saved" : "Save"}
               </Button>
+
             </div>
           </div>
         </div>
