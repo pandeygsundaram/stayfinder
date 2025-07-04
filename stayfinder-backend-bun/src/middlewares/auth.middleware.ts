@@ -22,6 +22,7 @@ export const authenticateJwt = (
 
     const token = req.cookies?.token;
 
+
     if (!token) {
         throw new Error('Token is undefined');
     }

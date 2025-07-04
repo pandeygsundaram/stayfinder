@@ -72,6 +72,12 @@ export const whoami = async (req: AuthRequest, res: Response): Promise<any> => {
 
 
 export const logout = (req: Request, res: Response): void => {
-  res.clearCookie("token");
-  res.status(200).json({ msg: "Logged out" });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/", // MUST match the path used when setting the cookie
+  });
+
+  res.status(200).json({ msg: "Logged out successfully ✌️" });
 };
