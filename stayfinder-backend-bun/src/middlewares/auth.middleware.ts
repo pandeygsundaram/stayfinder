@@ -11,14 +11,16 @@ export const authenticateJwt = (
     res: Response,
     next: NextFunction
 ) => {
-    const authHeader = req.headers.authorization;
+    // const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
-        res.status(401).json({ msg: 'No token provided' });
-        return;
-    }
+    // if (!authHeader) {
+    //     res.status(401).json({ msg: 'No token provided' });
+    //     return;
+    // }
 
-    const token = authHeader.split(' ')[1];
+    // const token = authHeader.split(' ')[1];
+
+    const token = req.cookies?.token;
 
     if (!token) {
         throw new Error('Token is undefined');
