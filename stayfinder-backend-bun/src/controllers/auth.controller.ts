@@ -16,9 +16,17 @@ export const register = async (req: Request, res: Response): Promise<any> => {
   console.log(typeof user.id)
 
   const token = generateToken(user.id);
-  console.log(user)
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax", // or 'strict'/'none' depending on your CORS setup
+    maxAge: 1000 * 60 * 60 * 24 * 1, // 7 days
+  });
+
+
   res.json({
-    token, user: {
+    user: {
       id: user.id,
       email: user.email,
       name: user.name,
@@ -44,7 +52,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     maxAge: 1000 * 60 * 60 * 24 * 1, // 7 days
   });
 
-  res.json({ msg: "Login successful" }); 
+  res.json({ msg: "Login successful" });
 };
 
 export const whoami = async (req: AuthRequest, res: Response): Promise<any> => {
