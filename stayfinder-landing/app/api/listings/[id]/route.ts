@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<Response> {
   const { id } = params;
