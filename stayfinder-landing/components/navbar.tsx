@@ -22,6 +22,7 @@ export function Navbar() {
   const { isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
   const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
+  const { isInitializing } = useAuthStore()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,55 +71,79 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
 
-          {isLoggedIn ? (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/search">
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Link>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/bookings">My Bookings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/host">Host Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      logout()
-                      router.push("/login")
-                    }}
-                  >Sign Out</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button
-                size="sm"
-                className="bg-gradient-to-r from-stayfinder-forest to-stayfinder-sage hover:from-stayfinder-forest/90 hover:to-stayfinder-sage/90 text-white dark:from-purple-500 dark:to-pink-500"
-                asChild
+
+          {isInitializing ? (
+            <div className="flex items-center justify-center h-8 w-8 animate-spin">
+              <svg
+                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
               >
-                <Link href="/signup">Sign Up</Link>
-              </Button>
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
             </div>
-          )}
+          ) :
+            isLoggedIn ? (
+              <div className="hidden md:flex items-center gap-2" >
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/search">
+                    <Search className="w-4 h-4 mr-2" />
+                    Search
+                  </Link>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/bookings">My Bookings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/host">Host Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        logout()
+                        router.push("/login")
+                      }}
+                    >Sign Out</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-stayfinder-forest to-stayfinder-sage hover:from-stayfinder-forest/90 hover:to-stayfinder-sage/90 text-white dark:from-purple-500 dark:to-pink-500"
+                  asChild
+                >
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            )}
 
           <Sheet>
             <SheetTrigger asChild>
@@ -168,6 +193,6 @@ export function Navbar() {
           </Sheet>
         </div>
       </div>
-    </header>
+    </header >
   )
 }
