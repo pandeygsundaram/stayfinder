@@ -26,6 +26,7 @@ jobs:
       run: |
         curl -fsSL https://bun.sh/install | bash
         echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
+        source /home/ubuntu/.bashrc 
         source ~/.bashrc || export PATH="$HOME/.bun/bin:$PATH"
     - name: Check versions
       run: |
