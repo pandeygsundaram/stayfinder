@@ -23,6 +23,7 @@ model User {
   listings Listing[]
   bookings Booking[]
   Wishlist Wishlist[]
+  Review   Review[]
 }
 
 model Listing {
@@ -38,6 +39,7 @@ model Listing {
   userId      Int
   bookings    Booking[]
   Wishlist    Wishlist[]
+  Review      Review[]
 }
 
 model Image {
@@ -48,14 +50,14 @@ model Image {
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   startDate DateTime
   endDate   DateTime
-  user      User     @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
   userId    Int
-  listing   Listing  @relation(fields: [listingId], references: [id])
+  listing   Listing      @relation(fields: [listingId], references: [id])
   listingId Int
-  status  BookingState @default(Pending)
+  status    BookingState @default(Pending)
 }
 
 enum BookingState {
@@ -72,4 +74,17 @@ model Wishlist {
   listingId Int
 
   @@unique([userId, listingId]) // No duplicates
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @default(5) // 1-5 star rating
+  comment   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  listingId Int
+
+  @@unique([userId, listingId]) // One review per user per listing
 }
