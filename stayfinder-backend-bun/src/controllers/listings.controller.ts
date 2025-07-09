@@ -3,7 +3,7 @@ import type { TypedAuthRequest, TypedRequest } from '../utils/types'; // path ma
 import { prisma } from '../prisma/client';
 
 import type { AuthRequest } from '../middlewares/auth.middleware';
-import type { CreateListingResponse, ListingsResponse, SingleListingResponse } from '../utils/listings.types';
+import type { CreateListingResponse } from '../utils/listings.types';
 
 export const createListing = async (req: AuthRequest, res: Response<CreateListingResponse>): Promise<void> => {
     try {
