@@ -26,17 +26,17 @@ jobs:
       run: |
         curl -fsSL https://bun.sh/install | bash
         echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
-        source ~/.bashrc
+        source ~/.bashrc || export PATH="$HOME/.bun/bin:$PATH"
     - name: Check versions
       run: |
         node -v
         bun --version
 
     - name: Install dependencies
-      run: bun install |
+      run: |
+        bun install
         touch .env
         echo "${{secrets.PROD_ENV_FILE}}"
-      
     - run : pm2 restart stayfinder-backend
 
 
