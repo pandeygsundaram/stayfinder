@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Star, MapPin, Heart, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 
 interface WishlistItem {
@@ -23,8 +22,17 @@ interface WishlistItem {
   }
 }
 
+interface Listing {
+  id: number
+  title: string
+  description: string | null
+  location: string
+  price: number
+  images: { id: number; url: string }[]
+}
+
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
+  const [wishlistItems, setWishlistItems] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,6 +50,8 @@ export default function WishlistPage() {
 
       const data = await response.json()
       setWishlistItems(data)
+      console.log(wishlistItems, data)
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -52,6 +62,10 @@ export default function WishlistPage() {
   useEffect(() => {
     fetchWishlist()
   }, [])
+
+  useEffect(() => {
+    console.log("wishlistItems updated:", wishlistItems)
+  }, [wishlistItems])
 
   const removeFromWishlist = async (listingId: number) => {
     try {
@@ -90,6 +104,7 @@ export default function WishlistPage() {
       </div>
     )
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stayfinder-cream to-white dark:from-indigo-950 dark:to-purple-950">
@@ -132,12 +147,12 @@ export default function WishlistPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {wishlistItems.map((item) => (
               <div key={item.id} className="group relative">
-                <Link href={`/property/${item.listing.id}`}>
+                <Link href={`/property/${item.id}`}>
                   <Card className="overflow-hidden transition-all duration-300 hover:shadow-premium premium-card border-stayfinder-sage/20 dark:border-purple-900">
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <Image
-                        src={item.listing.images[0]?.url || "/placeholder.svg?height=300&width=400"}
-                        alt={item.listing.title}
+                        src={item.images[0]?.url || "/placeholder.svg?height=300&width=400"}
+                        alt={item.title}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                       />
@@ -147,7 +162,7 @@ export default function WishlistPage() {
                     <CardHeader className="p-4">
                       <div className="flex justify-between items-start">
                         <h3 className="font-semibold text-lg text-stayfinder-forest dark:text-white line-clamp-1">
-                          {item.listing.title}
+                          {item.title}
                         </h3>
                         <div className="flex items-center">
                           <Star className="h-3.5 w-3.5 fill-stayfinder-gold text-stayfinder-gold mr-1" />
@@ -156,19 +171,19 @@ export default function WishlistPage() {
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5 mr-1" />
-                        {item.listing.location}
+                        {item.location}
                       </div>
                     </CardHeader>
 
                     <CardContent className="p-4 pt-0">
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {item.listing.description || "A magical place to stay with wonderful amenities."}
+                        {item.description || "A magical place to stay with wonderful amenities."}
                       </p>
                     </CardContent>
 
                     <CardFooter className="p-4 border-t border-stayfinder-sage/20 dark:border-purple-900 flex items-center justify-between">
                       <div className="font-semibold text-stayfinder-forest dark:text-white">
-                        ${item.listing.price} <span className="text-sm font-normal text-muted-foreground">/ night</span>
+                        ${item.price} <span className="text-sm font-normal text-muted-foreground">/ night</span>
                       </div>
                       <Badge
                         variant="outline"
@@ -178,20 +193,21 @@ export default function WishlistPage() {
                       </Badge>
                     </CardFooter>
                   </Card>
-                </Link>
+                  {/* </Link> */}
 
-                {/* Remove from Wishlist Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    removeFromWishlist(item.listing.id)
-                  }}
-                >
-                  <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                </Button>
+                  {/* Remove from Wishlist Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      removeFromWishlist(item.id)
+                    }}
+                  >
+                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                  </Button>
+                  </Link>
               </div>
             ))}
           </div>

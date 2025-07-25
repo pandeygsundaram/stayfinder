@@ -23,55 +23,6 @@ interface BookingHistory {
   }
 }
 
-const bookingHistory: BookingHistory[] = [
-  {
-    id: 1,
-    startDate: "2025-06-10",
-    endDate: "2025-06-15",
-    listing: {
-      id: 101,
-      title: "Cozy Mountain Cabin",
-      location: "Manali, Himachal Pradesh",
-      price: 3500,
-      images: [
-        { id: 1, url: "https://placehold.co/600x400?text=Cabin+1" },
-        { id: 2, url: "https://placehold.co/600x400?text=Cabin+2" },
-      ],
-    },
-  },
-  {
-    id: 2,
-    startDate: "2025-07-01",
-    endDate: "2025-07-03",
-    listing: {
-      id: 102,
-      title: "Luxury Beachfront Villa",
-      location: "Goa, India",
-      price: 7000,
-      images: [
-        { id: 3, url: "https://placehold.co/600x400?text=Villa+1" },
-        { id: 4, url: "https://placehold.co/600x400?text=Villa+2" },
-      ],
-    },
-  },
-  {
-    id: 3,
-    startDate: "2025-05-20",
-    endDate: "2025-05-22",
-    listing: {
-      id: 103,
-      title: "Modern Apartment in City Center",
-      location: "Bangalore, Karnataka",
-      price: 2500,
-      images: [
-        { id: 5, url: "https://placehold.co/600x400?text=Apartment+1" },
-        { id: 6, url: "https://placehold.co/600x400?text=Apartment+2" },
-        { id: 7, url: "https://placehold.co/600x400?text=Apartment+3" },
-      ],
-    },
-  },
-];
-
 export default function BookingHistoryPage() {
   const [bookings, setBookings] = useState<BookingHistory[]>([])
   const [loading, setLoading] = useState(true)

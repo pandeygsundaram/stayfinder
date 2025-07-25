@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run src/app.ts",
+    "dev": "bun --env-file .env.local src/app.ts",
+    "prod": "bun --env-file .env.prod src/app.ts",
     "test": "jest"
   },
   "devDependencies": {
