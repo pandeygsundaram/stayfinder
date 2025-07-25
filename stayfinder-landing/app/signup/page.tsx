@@ -76,6 +76,7 @@ export default function SignupPage() {
                   <Input
                     id="firstName"
                     placeholder="John"
+                    required
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     className="border-stayfinder-sage/30 focus:border-stayfinder-forest"
@@ -91,6 +92,7 @@ export default function SignupPage() {
                   type="email"
                   placeholder="your@email.com"
                   value={formData.email}
+                  required
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="border-stayfinder-sage/30 focus:border-stayfinder-forest"
                 />
@@ -104,6 +106,7 @@ export default function SignupPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
                     value={formData.password}
+                    required
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     className="border-stayfinder-sage/30 focus:border-stayfinder-forest pr-10"
                   />
@@ -166,22 +169,6 @@ export default function SignupPage() {
                 Create Account
                 {/* </Link> */}
               </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <Button variant="outline" className="border-stayfinder-sage/30">
-                  as a Guest
-                </Button>
-
-              </div>
 
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">Already have an account? </span>
