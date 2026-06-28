@@ -19,6 +19,12 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-playfair)", "Playfair Display", "ui-serif", "Georgia", "serif"],
+        // remap font-caveat to Playfair Display (editorial serif replaces handwriting)
+        caveat: ["var(--font-playfair)", "Playfair Display", "ui-serif", "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -53,18 +59,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom colors for StayFinder
         stayfinder: {
-          gold: "#D4AF37",
-          cream: "#FFF8E1",
-          sage: "#7D9D7F",
-          forest: "#2E5D4B",
-          terracotta: "#C66B3D",
-          ochre: "#D68C45",
-          navy: "#1F3A5F",
-          sky: "#A4CAED",
-          sand: "#E6D2B5",
-          clay: "#B56357",
+          gold: "#D4AF37",       // star ratings — kept
+          cream: "#FFFDFC",      // warm off-white (hotelgoo bg)
+          sage: "#F04C33",       // red accent (hotelgoo CTA red)
+          forest: "#111111",     // near-black (hotelgoo dark text)
+          terracotta: "#C66B3D", // warm orange accent
+          ochre: "#D68C45",      // amber highlight
+          navy: "#0c595f",       // hotelgoo teal (pool overlay)
+          sky: "#F7F6F2",        // warm card surface (hotelgoo card bg)
+          sand: "#FFF5F0",       // very light warm pink
+          clay: "#090C0E",       // hotelgoo footer dark
+          red: "#F04C33",        // explicit alias
+          dark: "#090C0E",       // explicit alias
         },
       },
       borderRadius: {
@@ -87,8 +94,8 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       boxShadow: {
-        premium: "0 10px 30px -10px rgba(46, 93, 75, 0.3)",
-        "premium-hover": "0 20px 40px -15px rgba(46, 93, 75, 0.4)",
+        premium: "0 10px 30px -10px rgba(240, 76, 51, 0.12)",
+        "premium-hover": "0 20px 40px -15px rgba(240, 76, 51, 0.22)",
       },
     },
   },
