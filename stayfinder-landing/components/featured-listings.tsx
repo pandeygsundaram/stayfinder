@@ -2,75 +2,29 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Star, MapPin } from "lucide-react"
+import { MapPin } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-const defaultTags = [
-  ["Forest View", "Hot Spring"],
-  ["Ocean View", "Private Beach"],
-  ["Unique Stay", "Nature"],
-  ["Tree House", "Magical"],
-  ["Mountain View", "Secluded"],
-  ["Traditional", "Hot Springs"],
-]
-
-const defaultTypes = ["Cottage", "Villa", "Castle", "Tree House", "Ryokan"]
-
-const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)]
-
-type ListingFromBackend = {
+type Listing = {
   id: number
   title: string
-  description?: string
   location: string
-  latitude?: number
-  longitude?: number
   price: number
-  userId: number
   images: { url: string }[]
 }
 
-type Property = {
-  id: number
-  title: string
-  location: string
-  price: number
-  rating: number
-  reviews: number
-  image: string
-  tags: string[]
-}
-
 export function FeaturedListings() {
-  const [listings, setListings] = useState<Property[]>([])
+  const [listings, setListings] = useState<Listing[]>([])
 
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const res = await fetch('/api/listings');
-        const data: ListingFromBackend[] = await res.json()
-
-        const enriched = data.slice(0, 3).map((item) => ({
-          id: item.id,
-          title: item.title,
-          location: item.location,
-          price: item.price,
-          rating: parseFloat((Math.random() * (5 - 4.6) + 4.6).toFixed(1)),
-          reviews: Math.floor(Math.random() * 150) + 20,
-          image: item.images?.[0]?.url || "/placeholder.svg?height=300&width=400",
-          tags: getRandom(defaultTags),
-        }))
-
-        setListings(enriched)
-      } catch (err) {
-        console.error("Failed to fetch featured listings:", err)
-      }
-    }
-
-    fetchListings()
+    fetch("/api/listings")
+      .then((r) => r.json())
+      .then((data: Listing[]) => setListings(Array.isArray(data) ? data.slice(0, 3) : []))
+      .catch(console.error)
   }, [])
+
+  if (listings.length === 0) return null
 
   return (
     <section className="py-12 md:py-24">
@@ -78,10 +32,10 @@ export function FeaturedListings() {
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-caveat bg-gradient-to-r from-stayfinder-forest to-stayfinder-sage dark:from-purple-400 dark:to-pink-400 text-transparent bg-clip-text">
-              Magical Places to Stay
+              Places to Stay
             </h2>
             <p className="max-w-[700px] text-stayfinder-forest/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-slate-300">
-              Discover unique homes with charm and character that feel like they're straight out of a storybook.
+              Discover unique homes with charm and character.
             </p>
           </div>
         </div>
@@ -90,9 +44,9 @@ export function FeaturedListings() {
           {listings.map((listing) => (
             <Link href={`/property/${listing.id}`} key={listing.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:shadow-premium premium-card border-stayfinder-sage/20 dark:border-purple-900">
-                <div className="relative h-64 w-full overflow-hidden">
+                <div className="relative h-64 w-full overflow-hidden bg-stayfinder-sage/10">
                   <Image
-                    src={listing.image}
+                    src={listing.images?.[0]?.url || "/placeholder.svg?height=300&width=400"}
                     alt={listing.title}
                     fill
                     className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
@@ -101,38 +55,17 @@ export function FeaturedListings() {
                 </div>
 
                 <CardHeader className="p-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-lg text-stayfinder-forest dark:text-white">{listing.title}</h3>
-                    <div className="flex items-center">
-                      <Star className="h-3.5 w-3.5 fill-stayfinder-gold text-stayfinder-gold mr-1" />
-                      <span className="text-sm font-medium">{listing.rating}</span>
-                    </div>
-                  </div>
+                  <h3 className="font-semibold text-lg text-stayfinder-forest dark:text-white">{listing.title}</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
                     <span className="truncate">{listing.location}</span>
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-4 pt-0">
-                  <div className="flex flex-wrap gap-2">
-                    {listing.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="bg-stayfinder-cream dark:bg-purple-900/30 text-stayfinder-forest dark:text-purple-300 border-stayfinder-sage/30 dark:border-purple-800"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-
-                <CardFooter className="p-4 border-t border-stayfinder-sage/20 dark:border-purple-900 flex items-center justify-between">
+                <CardFooter className="p-4 border-t border-stayfinder-sage/20 dark:border-purple-900">
                   <div className="font-semibold text-stayfinder-forest dark:text-white">
                     ${listing.price} <span className="text-sm font-normal text-muted-foreground">/ night</span>
                   </div>
-                  <div className="text-sm text-muted-foreground">{listing.reviews} reviews</div>
                 </CardFooter>
               </Card>
             </Link>
