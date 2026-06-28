@@ -1,25 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
-export async function GET(req: NextRequest): Promise<Response> {
-    try {
+export async function GET(): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
 
-        const cookieHeader = req.headers.get('cookie')
+  try {
+    const [listings, wishlistItems] = await Promise.all([
+      prisma.listing.findMany({
+        include: {
+          images: true,
+          user: { select: { id: true, email: true } },
+        },
+      }),
+      prisma.wishlist.findMany({
+        where: { userId: auth.userId },
+        select: { listingId: true },
+      }),
+    ]);
 
-        if (!cookieHeader) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+    const wishlisted = new Set(wishlistItems.map((w) => w.listingId));
+    const enriched = listings.map((l) => ({ ...l, isWishlisted: wishlisted.has(l.id) }));
 
-        const res = await fetch(`${process.env.BACKEND_URL}/api/listings/private`, {
-            method: "GET",
-            headers: { 'Cookie': cookieHeader || '', },
-        });
-
-        const data = await res.json();
-        return Response.json(data);
-    } catch (err) {
-        return new Response(
-            JSON.stringify({ error: 'Something went wrong' }),
-            { status: 500 }
-        );
-    }
+    return Response.json(enriched);
+  } catch {
+    return Response.json({ msg: "Internal server error" }, { status: 500 });
+  }
 }

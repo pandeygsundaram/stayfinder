@@ -1,21 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
-const BASE_URL = process.env.BACKEND_URL;
+export async function GET(): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
 
-export async function GET(req: NextRequest) {
-  const cookieHeader = req.headers.get('cookie');
+  try {
+    const wishlist = await prisma.wishlist.findMany({
+      where: { userId: auth.userId },
+      include: { listing: { include: { images: true, user: true } } },
+    });
 
-  if (!cookieHeader) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return Response.json(wishlist.map((w) => w.listing));
+  } catch {
+    return Response.json({ msg: "Something went wrong" }, { status: 500 });
   }
-
-  const res = await fetch(`${BASE_URL}/api/wishlist`, {
-    method: "GET",
-    headers: {
-      'Cookie': cookieHeader || '',
-    },
-  });
-
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
 }

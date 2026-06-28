@@ -1,66 +1,58 @@
-// app/api/bookings/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
+
   try {
-    const body = await req.json();
-    const cookieHeader = req.headers.get('cookie')
+    const { listingId, startDate, endDate } = await req.json();
 
-    if (!cookieHeader) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const backendRes = await fetch(`${process.env.BACKEND_URL}/api/booking`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        'Cookie': cookieHeader || '',
+    const conflict = await prisma.booking.findFirst({
+      where: {
+        listingId,
+        startDate: { lte: new Date(endDate) },
+        endDate: { gte: new Date(startDate) },
       },
-      body: JSON.stringify(body),
     });
 
-    const data = await backendRes.json();
-
-    console.log(data)
-
-    if (!backendRes.ok) {
-      return NextResponse.json(data, { status: backendRes.status });
+    if (conflict) {
+      return Response.json(
+        { msg: "This listing is already booked for those dates." },
+        { status: 409 }
+      );
     }
 
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("[BOOKING_API]", error.message || error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    const booking = await prisma.booking.create({
+      data: {
+        listingId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        userId: auth.userId,
+      },
+      include: { listing: true },
+    });
+
+    return Response.json(booking, { status: 201 });
+  } catch {
+    return Response.json({ msg: "Internal server error" }, { status: 500 });
   }
 }
 
+export async function GET(): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
 
-export async function GET(req: NextRequest) {
   try {
-    const cookieHeader = req.headers.get('cookie')
-
-    if (!cookieHeader) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const backendRes = await fetch(`${process.env.BACKEND_URL}/api/booking`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        'Cookie': cookieHeader || '',
-      },
+    const bookings = await prisma.booking.findMany({
+      where: { userId: auth.userId },
+      include: { listing: { include: { images: true } } },
+      orderBy: { startDate: "desc" },
     });
 
-    const data = await backendRes.json();
-
-    if (!backendRes.ok) {
-      return NextResponse.json(data, { status: backendRes.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("[BOOKING_API][GET]", error.message || error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return Response.json(bookings);
+  } catch {
+    return Response.json({ msg: "Internal server error" }, { status: 500 });
   }
-
 }

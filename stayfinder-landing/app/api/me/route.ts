@@ -1,33 +1,43 @@
-// app/api/me/route.ts
+import { getAuthUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { NextRequest } from "next/server";
 
-import { NextRequest } from 'next/server';
-
-
-export async function GET(req: NextRequest): Promise<Response> {
-  const cookieHeader = req.headers.get('cookie')
-
-  if (!cookieHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-    });
+export async function GET(): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) {
+    return Response.json({ msg: "Unauthorized" }, { status: 401 });
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { id: true, email: true, name: true, image: true },
+  });
+
+  if (!user) {
+    return Response.json({ msg: "User not found" }, { status: 404 });
+  }
+
+  return Response.json(user);
+}
+
+export async function PATCH(req: NextRequest): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
+
   try {
-    const res = await fetch(`${process.env.BACKEND_URL}/api/auth/me`, {
-      headers: {
-        'Cookie': cookieHeader || '',
-      },
+    const { name } = await req.json();
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return Response.json({ msg: "Name is required" }, { status: 400 });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: auth.userId },
+      data: { name: name.trim() },
+      select: { id: true, email: true, name: true, image: true },
     });
 
-    const data = await res.json();
-
-    return new Response(JSON.stringify(data), {
-      status: res.status,
-    });
-  } catch (error) {
-    console.error('Failed to fetch user profile:', error);
-    return new Response(JSON.stringify({ error: 'Failed to fetch user' }), {
-      status: 500,
-    });
+    return Response.json(user);
+  } catch {
+    return Response.json({ msg: "Failed to update profile" }, { status: 500 });
   }
 }

@@ -1,49 +1,58 @@
-import { NextRequest } from 'next/server';
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
-
-export async function GET(): Promise<Response> {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
-    const res = await fetch(`${process.env.BACKEND_URL}/api/listings`);
-    const data = await res.json();
-    return Response.json(data);
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: 'Something went wrong' }),
-      { status: 500 }
-    );
+    const { searchParams } = new URL(req.url);
+    const mine = searchParams.get("mine") === "true";
+
+    let userId: number | undefined;
+    if (mine) {
+      const auth = await getAuthUser();
+      if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
+      userId = auth.userId;
+    }
+
+    const listings = await prisma.listing.findMany({
+      where: userId ? { userId } : undefined,
+      include: {
+        images: true,
+        user: { select: { id: true, email: true, name: true } },
+        ...(mine ? { bookings: { select: { id: true, startDate: true, endDate: true, status: true } } } : {}),
+      },
+    });
+    return Response.json(listings);
+  } catch {
+    return Response.json({ msg: "Internal server error" }, { status: 500 });
   }
 }
 
-
 export async function POST(req: NextRequest): Promise<Response> {
+  const auth = await getAuthUser();
+  if (!auth) return Response.json({ msg: "Unauthorized" }, { status: 401 });
+
   try {
-    const authHeader = req.headers.get('authorization');
-    const payload = await req.json();
+    const { title, description, price, location, latitude, longitude, images } = await req.json();
 
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized: No token provided' }), {
-        status: 401,
-      });
-    }
-
-    const res = await fetch(`${process.env.BACKEND_URL}/api/listings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader,
+    const listing = await prisma.listing.create({
+      data: {
+        title,
+        description: description ?? "No description provided.",
+        location: location ?? "Unknown location",
+        latitude: latitude ?? 0.0,
+        longitude: longitude ?? 0.0,
+        price,
+        userId: auth.userId,
+        images: {
+          create: (images ?? []).map((url: string) => ({ url })),
+        },
       },
-      body: JSON.stringify(payload),
+      include: { images: true },
     });
 
-    const data = await res.json();
-
-    return new Response(JSON.stringify(data), {
-      status: res.status,
-    });
-  } catch (error) {
-    console.error('Error creating listing:', error);
-    return new Response(JSON.stringify({ error: 'Failed to create listing' }), {
-      status: 500,
-    });
+    return Response.json(listing, { status: 201 });
+  } catch {
+    return Response.json({ msg: "Something went wrong" }, { status: 500 });
   }
 }

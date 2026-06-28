@@ -1,22 +1,27 @@
-import { NextRequest } from 'next/server';
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const { id } = params;
+  const { id } = await params;
+  const numId = parseInt(id);
+  if (isNaN(numId)) return Response.json({ msg: "Invalid ID" }, { status: 400 });
 
   try {
-    const backendRes = await fetch(`${process.env.BACKEND_URL}/api/listings/${id}`);
-    const data = await backendRes.json();
+    const listing = await prisma.listing.findUnique({
+      where: { id: numId },
+      include: {
+        images: true,
+        user: { select: { id: true, name: true, email: true } },
+        bookings: { select: { id: true, startDate: true, endDate: true, status: true } },
+      },
+    });
 
-    return new Response(JSON.stringify(data), {
-      status: backendRes.status,
-    });
-  } catch (error) {
-    console.error('Error fetching listing:', error);
-    return new Response(JSON.stringify({ error: 'Failed to fetch listing' }), {
-      status: 500,
-    });
+    if (!listing) return Response.json({ msg: "Listing not found" }, { status: 404 });
+    return Response.json(listing);
+  } catch {
+    return Response.json({ msg: "Something went wrong" }, { status: 500 });
   }
 }

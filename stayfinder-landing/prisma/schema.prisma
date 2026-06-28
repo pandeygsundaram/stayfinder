@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int        @id @default(autoincrement())
+  email    String     @unique
+  name     String
+  image    String?
+  Age      Int?
+  listings Listing[]
+  bookings Booking[]
+  Wishlist Wishlist[]
+  Review   Review[]
+}
+
+model Listing {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  images      Image[]
+  location    String
+  latitude    Float?
+  longitude   Float?
+  price       Float
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  bookings    Booking[]
+  Wishlist    Wishlist[]
+  Review      Review[]
+}
+
+model Image {
+  id        Int     @id @default(autoincrement())
+  url       String
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId Int
+}
+
+model Booking {
+  id        Int          @id @default(autoincrement())
+  startDate DateTime
+  endDate   DateTime
+  user      User         @relation(fields: [userId], references: [id])
+  userId    Int
+  listing   Listing      @relation(fields: [listingId], references: [id])
+  listingId Int
+  status    String       @default("Pending")
+}
+
+model Wishlist {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId Int
+
+  @@unique([userId, listingId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  listingId Int
+
+  @@unique([userId, listingId])
+}
