@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { signOut } from "next-auth/react"
 
 type User = {
   id: string
@@ -11,8 +12,9 @@ type AuthState = {
   isInitializing: boolean
   user: User | null
   token: string | null
-  login: (user: User, token?: string) => void
+  login: (user: User) => void
   logout: () => Promise<void>
+  setInitializing: (value: boolean) => void
   initAuth: () => Promise<void>
 }
 
@@ -23,41 +25,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: null,
 
   login: (user) => {
-    set({ isAuthenticated: true, user })
+    set({ isAuthenticated: true, user, isInitializing: false })
   },
 
   logout: async () => {
-    try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } catch (e) {
-      console.error("Failed to logout cleanly", e)
-    } finally {
-      set({
-        isAuthenticated: false,
-        user: null,
-        token: null,
-      })
-    }
+    set({ isAuthenticated: false, user: null, token: null })
+    await signOut({ callbackUrl: "/login" })
   },
 
+  setInitializing: (value) => set({ isInitializing: value }),
+
+  // no-op: session is now managed by NextAuth via InitAuth component
   initAuth: async () => {
-    try {
-      const res = await fetch("/api/me", {
-        method: "GET",
-        credentials: "include",
-      })
-
-      if (!res.ok) throw new Error("Unauthorized")
-
-      const user = await res.json()
-      set({ isAuthenticated: true, user })
-    } catch (err) {
-      await useAuthStore.getState().logout()
-    } finally {
-      set({ isInitializing: false })
-    }
+    set({ isInitializing: false })
   },
 }))

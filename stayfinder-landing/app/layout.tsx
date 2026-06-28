@@ -1,32 +1,34 @@
 import type React from "react"
 import "@/app/globals.css"
-import { Inter } from "next/font/google"
+import { Inter, Playfair_Display } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import Providers from "@/stores/providers"
 import ToasterProvider from "@/components/ToasterProvider"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+})
 
 export const metadata = {
-  title: "StayFinder - Find Your Magical Stay",
+  title: "StayFinder — Book Easy, Stay Happy",
   description:
-    "Discover magical stays in enchanting locations with StayFinder, an Airbnb-style platform with a Studio Ghibli-inspired aesthetic.",
+    "Discover unique stays in amazing locations. Book with confidence and enjoy every moment.",
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap"
-        />
-      </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <Providers>
             <ToasterProvider />

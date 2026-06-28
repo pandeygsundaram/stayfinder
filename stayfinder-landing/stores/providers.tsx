@@ -1,15 +1,12 @@
-// components/Providers.tsx
 'use client';
 
+import { SessionProvider } from "next-auth/react";
 import AuthInit from './InitAuth'
-import { Navbar } from '@/components/navbar';
-
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <SessionProvider>
       <AuthInit />
-      <Navbar />
       {children}
-    </>
+    </SessionProvider>
   );
 }

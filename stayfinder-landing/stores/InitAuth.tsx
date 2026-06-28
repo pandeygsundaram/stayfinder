@@ -1,25 +1,27 @@
 "use client"
+
 import { useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { useAuthStore } from "./authstore"
-import { useRouter } from "next/navigation"
-import { usePathname } from "next/navigation"
 
 const AuthInit = () => {
-  const initAuth = useAuthStore((state) => state.initAuth)
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const router = useRouter()
-  const pathname = usePathname()
+  const { data: session, status } = useSession()
+  const { login, setInitializing } = useAuthStore()
 
   useEffect(() => {
-    const runInit = async () => {
-      await initAuth()
+    if (status === "loading") return
 
-      if (isAuthenticated && pathname === "/") {
-        router.push("/search")
-      }
+    if (status === "authenticated" && session?.user) {
+      const user = session.user as { id?: number; name?: string | null; email?: string | null }
+      login({
+        id: String(user.id ?? ""),
+        name: user.name ?? "",
+        email: user.email ?? "",
+      })
+    } else {
+      setInitializing(false)
     }
-    runInit()
-  }, [initAuth, isAuthenticated, router])
+  }, [status, session])
 
   return null
 }
